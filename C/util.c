@@ -227,8 +227,9 @@ void getNextSize(Graph * g, GraphPtrList * outList){
 
       j = j>>1;
     }
+    current->numEdges += n;
     //printf("%d\n", (current->edges + 5)->col);
-    printGraph(current);
+    //printGraph(current);
   }
 }
 
@@ -259,15 +260,15 @@ GraphPtrList * clean(GraphPtrList * in){
   int length = in->size;
   while(i < length){
     for(j = length-1; j > i; j--){
-      if(areColorIso(*(in->graphs + i), *(in->graphs + j))){
+      //if(areColorIso(*(in->graphs + i), *(in->graphs + j))){
         //printf("i: %d\n", i);
-        destroyGraph(*(in->graphs + j));
-        *(in->graphs + i) = NULL;
-      }
+        //destroyGraph(*(in->graphs + j));
+        //*(in->graphs + i) = NULL;
+      //}
     }
     i++;
   }
-  int k = 0;
+  int k = 0;/*
   GraphPtrList * out = newGraphPtrList(length);
 
   for(j = 0; j < length; j++){
@@ -280,8 +281,8 @@ GraphPtrList * clean(GraphPtrList * in){
     free(*(out->graphs + i));
   }
   out->graphs = (Graph **)realloc(out->graphs, k*sizeof(Graph*));
-  out->size = k;
-  return out;
+  out->size = k;*/
+  //return out;
 }
 
 int main(){
@@ -290,7 +291,7 @@ int main(){
   srand(t);
 
   Graph g;
-  createKn(&g, 7);
+  createKn(&g, 4);
   printGraph(&g);
   int i, j;
   int numNextSizeUp = pow(NUMBER_OF_COLORS, g.numVertices);
@@ -299,50 +300,15 @@ int main(){
   getNextSize(&g, nextSizeUp);
   GraphPtrList* cleaned;
 
-  cleaned = clean(nextSizeUp);
+  //cleaned = clean(nextSizeUp);
   printf("Should be 2: %d\n", cleaned->size);
-  printGraph(*(cleaned->graphs));
-  /*
-  int n1 = pow(NUMBER_OF_COLORS, 2);
-
-  Graph ** newNextSizeUp = (Graph **)malloc(n1*numCleaned*sizeof(Graph*));
-  for(i = 0; i < n1*numCleaned; i++){
-    *(newNextSizeUp + i) = (Graph *)malloc(sizeof(Graph));
-  }
-
-  for(j = 0; j < numCleaned; j++){
-    getNextSize(*(cleaned + j), newNextSizeUp);
-    /*Graph ** newCleaned;
-    int newNumCleaned = clean(newNextSizeUp, newCleaned, n1);
-    printf("%d", newNumCleaned);
-  }
-*/
-  /*
-  char buf[20];
-  int i = 0;
-  printf("Here is the original one with random colors: \n");
-  for(i = 0; i < g.numEdges; i++){
-    edgeToString(buf, *(g.edges + i));
+  //printGraph(*(cleaned->graphs));
+  char buf[100];
+  for(i = 0; i < nextSizeUp->size; i++){
+    Graph * c = *(nextSizeUp->graphs + i);
+    edgeToString(buf, *(c->edges + c->numEdges - 1));
     printf("%s\n", buf);
+    printGraph(c);
   }
-*/
-
-/*
-  Graph redSub;
-  getSubGraph(&g, &redSub, RED);
-  printf("Here is the new one: \n");
-  for(i = 0; i < redSub.numEdges; i++){
-    edgeToString(buf, *(redSub.edges + i));
-    printf("%s\n", buf);
-  }
-  int* gCL = getCharList(&g);
-  printf("(");
-  for(i = 0; i < g.numVertices; i++){
-    printf("%d ", *(gCL + i));
-  }
-  free(gCL);
-  printf(")\n");
-  int j;
-  printf("Does it have K3? %d\n", hasK3(&redSub));*/
   return 0;
 }
