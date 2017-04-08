@@ -239,7 +239,7 @@ GraphPtrList* newGraphPtrList(int n){
   gL->graphs = (Graph **)malloc(n*sizeof(Graph*));
   int i;
   for(i = 0; i < n; i++){
-    *(gL->graphs + i) = (Graph *)malloc(n*sizeof(Graph));
+    *(gL->graphs + i) = (Graph *)malloc(sizeof(Graph));
   }
 
   return gL;
@@ -248,10 +248,11 @@ GraphPtrList* newGraphPtrList(int n){
 void destroyGraph(Graph * g){
   int i;
   for(i = 0; i < g->numVertices; i++){
-    (g->vertices + i)->neighbors = NULL;
+    free((g->vertices + i)->neighbors);
   }
-  (g->edges) = NULL;
-  (g->vertices) = NULL;
+  free(g->edges);
+  free(g->vertices);
+  free(g);
 }
 
 GraphPtrList * clean(GraphPtrList * in){
@@ -260,29 +261,30 @@ GraphPtrList * clean(GraphPtrList * in){
   int length = in->size;
   while(i < length){
     for(j = length-1; j > i; j--){
-      //if(areColorIso(*(in->graphs + i), *(in->graphs + j))){
-        //printf("i: %d\n", i);
-        //destroyGraph(*(in->graphs + j));
-        //*(in->graphs + i) = NULL;
-      //}
+      if(areColorIso(*(in->graphs + i), *(in->graphs + j))){
+        //printf("i: %d\n", j);
+        (*(in->graphs + j))->isNull = TRUE;
+      }
     }
     i++;
   }
-  int k = 0;/*
+  int k = 0;
   GraphPtrList * out = newGraphPtrList(length);
 
   for(j = 0; j < length; j++){
-    if(*(in->graphs + j) != NULL){
+    if(!(*(in->graphs + j))->isNull){
       *(out->graphs+k) = *(in->graphs+j);
       k++;
+    }else{
+      destroyGraph(*(in->graphs + j));
     }
   }
   for(i = k; i < length; i++){
     free(*(out->graphs + i));
   }
   out->graphs = (Graph **)realloc(out->graphs, k*sizeof(Graph*));
-  out->size = k;*/
-  //return out;
+  out->size = k;
+  return out;
 }
 
 int main(){
@@ -300,15 +302,9 @@ int main(){
   getNextSize(&g, nextSizeUp);
   GraphPtrList* cleaned;
 
-  //cleaned = clean(nextSizeUp);
+  cleaned = clean(nextSizeUp);
   printf("Should be 2: %d\n", cleaned->size);
-  //printGraph(*(cleaned->graphs));
-  char buf[100];
-  for(i = 0; i < nextSizeUp->size; i++){
-    Graph * c = *(nextSizeUp->graphs + i);
-    edgeToString(buf, *(c->edges + c->numEdges - 1));
-    printf("%s\n", buf);
-    printGraph(c);
-  }
+  printGraph(*(cleaned->graphs));
+
   return 0;
 }

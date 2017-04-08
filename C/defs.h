@@ -20,19 +20,20 @@ typedef struct Edge {
   Vertex v2;
   Color col;
 } Edge;
+typedef enum Boolean {
+  TRUE = 1, FALSE = 0
+} bool;
+
+
 
 typedef struct Graph {
   Edge* edges;
   int numEdges;
   Vertex* vertices;
   int numVertices;
+  bool isNull;
 } Graph;
-
 typedef struct GraphPtrList {
   Graph ** graphs;
   int size;
 } GraphPtrList;
-
-typedef enum Boolean {
-  TRUE = 1, FALSE = 0
-} bool;
