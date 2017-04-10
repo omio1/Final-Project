@@ -16,8 +16,8 @@ typedef struct Vertex {
 } Vertex;
 
 typedef struct Edge {
-  Vertex v1;
-  Vertex v2;
+  Vertex * v1;
+  Vertex * v2;
   Color col;
 } Edge;
 typedef enum Boolean {
