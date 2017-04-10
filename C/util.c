@@ -136,6 +136,11 @@ Color getRandomColor(){
   return rand()%NUMBER_OF_COLORS;
 }
 
+/*  Populates old with copies of all the vertices in new,
+ *  and with copies of all edges, all in new memory
+ *  This allows us to modify the copy without changing the original.
+ *  Consider rewriting to return a pointer to the new graph with malloc
+ */
 void copyGraph(Graph * old, Graph * new){
   new->vertices = (Vertex *)malloc(old->numVertices*sizeof(Vertex));
   new->numVertices = old->numVertices;
@@ -152,10 +157,16 @@ void copyGraph(Graph * old, Graph * new){
   }
 }
 
+//Simple wrapper for newEdge to color the edge a random color
 void newEdgeRandCol(Edge* e, Vertex * v1, Vertex * v2){
   newEdge(e, v1, v2, getRandomColor());
 }
 
+/*  Populates g with Kn, the complete graph with n vertices
+ *
+ *  Consider rewriting to return a pointer to Kn without having to pass in
+ *  the pointer, using malloc
+ */
 void createKn(Graph* g, int n){
   g->vertices = (Vertex *) malloc(n*sizeof(Vertex));
   g->numVertices = n;
@@ -176,6 +187,11 @@ void createKn(Graph* g, int n){
   }
 }
 
+/*  Prints a human readable representation of g
+ *  It prints it's characteristic matrix, where X
+ *  represents no edge between the vertices, and a
+ *  letter represents its corresponding color.
+ */
 void printGraph(Graph * g){
   int n = g->numVertices;
   int edgeMatrix[n][n];
@@ -204,16 +220,26 @@ void printGraph(Graph * g){
   }
 }
 
+/*  Gives g a new vertex, and does the work of expanding appropriate memory slots
+ *  I'm sure there's room for improvement here, like maybe returning a pointer
+ *  to the new vertex
+ */
 void addVertex(Graph * g){
   g -> vertices = (Vertex *)realloc(g->vertices, (g->numVertices+1)*sizeof(Vertex));
   g->numVertices++;
   newVertex(g->vertices + g->numVertices-1, g->numVertices-1, g->numVertices);
 }
 
+//used in implementation of qsort
 int compareInts(const void * a, const void * b){
   return (*(int*)a - *(int*)b);
 }
 
+/*  Returns an array of ints, where each in represents the number of red
+ *  edges incident to a vertex. The array is also sorted for easier comparison.
+ *
+ *  Returns pointer to array, so we need to remember to free the space when we're done
+ */
 int* getCharList(Graph * g){
   int i, j;
   int* colorList = (int*)malloc(g->numVertices*sizeof(int));
@@ -227,43 +253,62 @@ int* getCharList(Graph * g){
   return colorList;
 }
 
+
+/*  returns TRUE if the characteristic list of the g and h are the same
+ */
 bool areColorIso(Graph * g, Graph * h){
   if(g != NULL && h!= NULL){
-    return !memcmp(getCharList(g), getCharList(h), g->numVertices);
+    int * a = getCharList(g);
+    int * b = getCharList(h);
+    bool ans = !memcmp(a, b, g->numVertices);
+    free(a);
+    free(b);
+    return ans;
   }else{
     return FALSE;
   }
 }
 
+
+/*  Now we get to the good stuff! This function populates outlist
+ *  with all the graphs you can generate by adding a vertex to g
+ *  and then coloring every new edge every possible combination of color.
+ *  There are 2^n such combinations, 2 because there are 2 colors, n because
+ *  there are n edges.
+ */
 void getNextSize(Graph * g, GraphPtrList * outList){
   int n = g -> numVertices;
   int i, k;
 
   //2^n combinations of new edges to add
+  //So the way I implemented this is specific to 2 colors
+  //i in binary counts from 00000...000 to 1111111...111 where there are n bits
+  //so each edges color is that bit
   for(i = 0; i < pow(2, n); i++){
     Graph * current = *(outList->graphs + i);
 
     copyGraph(g, current);
     addVertex(current);
     Vertex * newVertex = current->vertices + n;
-    //printf("Edges: %d Size of each: %d\n", (current->numEdges + n),sizeof(Edge));
     current->edges = (Edge*)realloc(current->edges, (current->numEdges + n)*sizeof(Edge));
-    //printf("Realloc successful!\n");
 
     int j = i;
     for(k = 0; k < n; k++){
       Vertex * v = current->vertices + k;
       Edge * newEdgePtr = current->edges + current->numEdges + k;
-      newEdge(newEdgePtr, newVertex, v, j%NUMBER_OF_COLORS);
-
+      newEdge(newEdgePtr, newVertex, v, j&1);
+      //divides j by 2, essentially moving j over 1 bit
       j = j>>1;
     }
+    //maybe write addEdge function? To combine several lines
     current->numEdges += n;
-    //printf("%d\n", (current->edges + 5)->col);
-    //printGraph(current);
   }
 }
 
+
+/*  Does all the necessary mallocing for a list of graph pointers
+ *  Remember to free any pointer this creates
+ */
 GraphPtrList* newGraphPtrList(int n){
   GraphPtrList* gL = (GraphPtrList *)malloc(sizeof(GraphPtrList));
   gL->size = n;
@@ -272,10 +317,10 @@ GraphPtrList* newGraphPtrList(int n){
   for(i = 0; i < n; i++){
     *(gL->graphs + i) = (Graph *)malloc(sizeof(Graph));
   }
-
   return gL;
 }
 
+//deallocates all memory allocated to a graph
 void destroyGraph(Graph * g){
   int i;
   for(i = 0; i < g->numVertices; i++){
@@ -286,38 +331,54 @@ void destroyGraph(Graph * g){
   free(g);
 }
 
+/*  The other fun part of this program, this function takes a list of graph pointers
+ *  and returns a new list that contains only one graph from each isomorphism
+ *  equivalence class
+ *  Remember to free any pointer made from this
+ */
 GraphPtrList * clean(GraphPtrList * in){
   int i = 0;
-  int j;
+  int j = 0;
+  int k = 0;
   int length = in->size;
+  int found = 0;
+  //for every graph g in 'in'
   while(i < length){
+    //if that graph is not NULL
     if(!((*(in->graphs + i))->isNull)){
+      //then for every other graph after it h
       for(j = length-1; j > i; j--){
+        //if g and h are color isomorphic
         if(areColorIso(*(in->graphs + i), *(in->graphs + j))){
-          //printf("i: %d  j: %d\n", i, j);
+          //set h to null
           (*(in->graphs + j))->isNull = TRUE;
         }
       }
+      found++;
     }
+    //check the next one
     i++;
   }
-  int k = 0;
-  GraphPtrList * out = newGraphPtrList(length);
+  //what we're gonna return
 
-  for(j = 0; j < length; j++){
-    if(!(*(in->graphs + j))->isNull){
-      *(out->graphs+k) = *(in->graphs+j);
+
+  GraphPtrList * out = newGraphPtrList(found);
+  printf("%d\n", out->size);
+  //for every graph g in 'in'
+  for(i = 0; i < length; i++){
+    //if g is not null
+    if(!(*(in->graphs + i))->isNull){
+      //then set the kth graph of out to be g
+      //no need to copy, we're doing this in place
+      *(out->graphs+k) = *(in->graphs+i);
+      printf("copy loop %d\n", i );
       k++;
+    //but if it is null
     }else{
-      destroyGraph(*(in->graphs + j));
+      //free its memory
+      destroyGraph(*(in->graphs + i));
     }
   }
-  for(i = k; i < length; i++){
-    free(*(out->graphs + i));
-  }
-  //printf("Graphs realloc size: %d\n", k*sizeof(Graph*));
-  out->graphs = (Graph **)realloc(out->graphs, k*sizeof(Graph*));
-  out->size = k;
   return out;
 }
 
@@ -327,7 +388,7 @@ int main(){
   srand(t);
 
   Graph g;
-  createKn(&g, 17);
+  createKn(&g, 16);
   printGraph(&g);
   int i, j;
   int numNextSizeUp = (int) pow(NUMBER_OF_COLORS, g.numVertices) + .5;
@@ -339,10 +400,6 @@ int main(){
   printf("%d\n", nextSizeUp->size);
   cleaned = clean(nextSizeUp);
   printf("Cleaned size: %d\n", cleaned->size);
-/*  printf("Should be 2: %d\n", cleaned->size);
-  printGraph(*(cleaned->graphs));
-  printGraph(*(cleaned->graphs + 1));
-*/
 
   return 0;
 }
