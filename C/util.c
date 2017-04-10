@@ -293,18 +293,21 @@ int main(){
   srand(t);
 
   Graph g;
-  createKn(&g, 4);
+  createKn(&g, 7);
   printGraph(&g);
   int i, j;
-  int numNextSizeUp = pow(NUMBER_OF_COLORS, g.numVertices);
+  int numNextSizeUp = (int) pow(NUMBER_OF_COLORS, g.numVertices) + .5;
+  printf("%d\n", numNextSizeUp);
   GraphPtrList * nextSizeUp = newGraphPtrList(numNextSizeUp);
 
   getNextSize(&g, nextSizeUp);
   GraphPtrList* cleaned;
-
+  printf("%d\n", nextSizeUp->size);
   cleaned = clean(nextSizeUp);
-  printf("Should be 2: %d\n", cleaned->size);
+/*  printf("Should be 2: %d\n", cleaned->size);
   printGraph(*(cleaned->graphs));
+  printGraph(*(cleaned->graphs + 1));
+*/
 
   return 0;
 }
