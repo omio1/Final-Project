@@ -388,7 +388,7 @@ int main(){
   srand(t);
 
   Graph g;
-  createKn(&g, 16);
+  createKn(&g, 8);
   printGraph(&g);
   int i, j;
   int numNextSizeUp = (int) pow(NUMBER_OF_COLORS, g.numVertices) + .5;
