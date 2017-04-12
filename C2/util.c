@@ -20,15 +20,15 @@ void printGraph(Graph * g){
 }
 
 Color * createKn(int numVertices) {
-	int maxVertices = numVertices * (numVertices - 1) / 2;
-	Color * Kn = (Color *) malloc(maxVertices * sizeof(Color));
-	int edgeCount;
+  int maxVertices = numVertices * (numVertices - 1) / 2;
+  Color * Kn = (Color *) malloc(maxVertices * sizeof(Color));
+  int edgeCount;
 	
-	for (edgeCount = 0; edgeCount < maxVertices; edgeCount++) {
-		*(Kn + edgeCount) = RED;
-	}
+    for (edgeCount = 0; edgeCount < maxVertices; edgeCount++) {
+      *(Kn + edgeCount) = RED;
+    }
 	
-	return Kn;
+    return Kn;
 }
 
 Color getEdgeColor(Graph * g, int n, int m){
