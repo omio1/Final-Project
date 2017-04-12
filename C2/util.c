@@ -1,4 +1,6 @@
-
+#include "defs.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 int * getCharList(Graph * g){
   int * charList = (int *)malloc(g->n * sizeof(int));
@@ -15,20 +17,21 @@ int * getCharList(Graph * g){
 }
 
 void printGraph(Graph * g){
-  
+
 
 }
 
-Color * createKn(int numVertices) {
+Graph * createKn(int numVertices) {
   int maxVertices = numVertices * (numVertices - 1) / 2;
-  Color * Kn = (Color *) malloc(maxVertices * sizeof(Color));
+  Graph * Kn = (Graph *)malloc(sizeof(Graph));
+  Kn->edges = (Color *) malloc(maxVertices * sizeof(Color));
   int edgeCount;
-	
-    for (edgeCount = 0; edgeCount < maxVertices; edgeCount++) {
-      *(Kn + edgeCount) = RED;
-    }
-	
-    return Kn;
+
+  for (edgeCount = 0; edgeCount < maxVertices; edgeCount++) {
+    *(Kn->edges + edgeCount) = RED;
+  }
+
+  return Kn;
 }
 
 Color getEdgeColor(Graph * g, int n, int m){
@@ -41,4 +44,8 @@ Color getEdgeColor(Graph * g, int n, int m){
     int base = m*(m-1)/2;
     return *(g->edges + base + n);
   }
+}
+
+int main(){
+  return 0;
 }
