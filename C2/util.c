@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int * getCharList(Graph * g){
-  int * charList = (int *)malloc(g->n * sizeof(int));
+  int * charList = malloc(g->n * sizeof *charList);
   int i, j;
   for(i = 0; i < g->n; i++){
     int reds = 0;
@@ -17,23 +17,73 @@ int * getCharList(Graph * g){
 }
 
 void printGraph(Graph * g){
-
-
+  int n = g->n;
+  int i, j;
+  printf("  ");
+  for(i = 0; i < n; i++){
+    printf("%d ", i);
+  }
+  printf("\n");
+  i = 0;
+  while (i < n){
+    printf("%d ", i);
+    for(j = 0; j < i; j++){
+      printf("%d ", *(g->edges + i*(i-1)/2 + j));
+    }
+    printf("\n");
+    i++;
+  }
 }
 
 Graph * createKn(int numVertices) {
-  int maxVertices = numVertices * (numVertices - 1) / 2;
-  Graph * Kn = (Graph *)malloc(sizeof(Graph));
-  Kn->edges = (Color *) malloc(maxVertices * sizeof(Color));
+  int numEdges = numVertices * (numVertices - 1) / 2;
+  Graph * Kn = malloc(sizeof(*Kn));
+  Kn->edges =  malloc(numEdges * sizeof *(Kn->edges));
+
+  Kn->n = numVertices;
   int edgeCount;
 
-  for (edgeCount = 0; edgeCount < maxVertices; edgeCount++) {
+  for (edgeCount = 0; edgeCount < numEdges; edgeCount++) {
     *(Kn->edges + edgeCount) = RED;
   }
 
   return Kn;
 }
 
+GraphList * getNextSize(Graph * g){
+  int i, j;
+  int n = g->n;
+  GraphList * out = malloc(sizeof *out);
+  out->graphs = malloc(pow(2, n) * sizeof *(out->graphs));
+  for(i = 0; i < pow(2, n); i++){
+    Graph * current = out->graphs + i;
+    *current = *copyGraph(g);
+    current->edges = realloc(current->edges, (n*(n+1)/2) * sizeof *(current->edges));
+    current->n += 1;
+    int k = i;
+    for(j = n*(n-1)/2; j < n*(n+1)/2; j++){
+      *(current->edges + j) = (k&1) + 1;
+      k = k>>1;
+    }
+  }
+  return out;
+}
+
+Graph * copyGraph(Graph * g){
+  Graph * out = malloc(sizeof *out);
+  int n = g->n;
+  out->edges = malloc(n*(n-1)/2 * sizeof *(out->edges));
+  for(int i = 0; i < n*(n-1)/2; i++){
+    *(out->edges + i) = *(g->edges + i);
+  }
+  out->n = g->n;
+  return out;
+}
+
+void destroyGraph(Graph * g){
+  free(g->edges);
+  free(g);
+}
 Color getEdgeColor(Graph * g, int n, int m){
   if( n == m ) {
     return NONE;
@@ -47,5 +97,12 @@ Color getEdgeColor(Graph * g, int n, int m){
 }
 
 int main(){
+  char b = 0;
+  Graph * g = createKn(4);
+  printGraph(g);
+  GraphList * next = getNextSize(g);
+  for(int i = 0; i < pow(2, g->n); i++){
+    printGraph((next->graphs + i));
+  }
   return 0;
 }
