@@ -14,6 +14,9 @@ typedef struct GraphList {
   Graph * graphs;
 } GraphList;
 
+typedef enum bool {
+  FALSE = 0, TRUE = 1
+} bool;
 
 //function headers
 Graph * createKn(int n);

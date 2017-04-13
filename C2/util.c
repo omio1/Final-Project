@@ -1,6 +1,7 @@
 #include "defs.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 int * getCharList(Graph * g){
   int * charList = malloc(g->n * sizeof *charList);
@@ -84,6 +85,7 @@ void destroyGraph(Graph * g){
   free(g->edges);
   free(g);
 }
+
 Color getEdgeColor(Graph * g, int n, int m){
   if( n == m ) {
     return NONE;
@@ -95,6 +97,28 @@ Color getEdgeColor(Graph * g, int n, int m){
     return *(g->edges + base + n);
   }
 }
+
+//Example of not very good K3 checking, has to check n choose 3 combos
+//we can make an analogus one for checking for k4, we can probably
+//even make a general has Kn
+bool hasK3(Graph * g, Color c){
+  int n = g->n;
+  for(int i = 0; i < n - 2; i++){
+    for(int j = i + 1; j < n - 1; j++){
+      for(int k = j + 1; k < n; k++){
+        if(
+          getEdgeColor(g, i, j) == c &&
+          getEdgeColor(g, j, k) == c &&
+          getEdgeColor(g, i, k) == c
+        ){
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
 
 int main(){
   char b = 0;
